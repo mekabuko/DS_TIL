@@ -107,7 +107,7 @@ df.sort_values(by=["xxx","yyy])
 - 内部結合
     - 同じ key を持たないものは落とされる
     - `pd.merge(df1, df2, on="xxx", how="inner")`
-- 内部結合
+- 外部結合
     - key がなくてもいい
          - 不足部分は `NaN` になる
     - `pd.merge(df1, df2, on="xxx", how="outer")`
