@@ -3,6 +3,7 @@
 
 ## Utility
 - 公式リファレンス(v1.13)：https://numpy.org/doc/1.13/search.html
+- [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
 ### チートシート(ちょっと古いかも)
 - [pyhton](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/PythonForDataScience.pdf)
 - [Numpy](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Numpy_Python_Cheat_Sheet.pdf)
@@ -32,3 +33,6 @@
     - とはいえ多分、忘れていることも多そう。。また必要なら戻ってくる。
 6. 統計学標準: 2021/04/02
     - これもスキップ。
+7. 機械学習のための線形代数: 2021/04/03
+    - かなり忘れている。。とりあえずこなしただけ。
+    - 特に手計算が辛すぎる。途中からWolframAlpha頼りに。
