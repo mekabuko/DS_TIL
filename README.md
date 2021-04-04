@@ -1,9 +1,11 @@
 # Today I Learned, about Data Science
 - 学習記録。
-
-## Utility
-- 公式リファレンス(v1.13)：https://numpy.org/doc/1.13/search.html
-- [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
+## Links
+### 公式ドキュメント等
+- Python公式リファレンス: https://docs.python.org/ja/3/reference/index.html
+- NumPy公式リファレンス(v1.13)：https://numpy.org/doc/1.13/search.html
+- Pandas公式リファレンス: https://pandas.pydata.org/pandas-docs/stable/reference/index.html
+- matplotlib公式リファレンス: https://matplotlib.org/2.0.2/api/index.html
 ### チートシート(ちょっと古いかも)
 - [pyhton](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/PythonForDataScience.pdf)
 - [Numpy](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Numpy_Python_Cheat_Sheet.pdf)
@@ -11,6 +13,8 @@
     - [和訳](https://github.com/Gedevan-Aleksizde/pandas-cheat-sheet-ja/blob/master/doc/Pandas_Cheat_Sheet_ja.pdf)
 - [Matplotlib](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Python_Matplotlib_Cheat_Sheet.pdf)
 - [scikit-learn](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Scikit_Learn_Cheat_Sheet_Python.pdf)
+### Utility
+- [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
 
 ## Aidemy Courses
 0. Python入門 : 2021/04/01
@@ -38,3 +42,4 @@
     - 特に手計算が辛すぎる。途中からWolframAlpha頼りに。
 8. データサイエンス100本ノック（構造化データ加工編）（初級）: 2021/04/03 ~ 2021/04/04
     - 「列や行に対する操作」「結合」「縦横変換」「四則演算」
+9. データサイエンス100本ノック（構造化データ加工編）（中級）: 2021/04/04
