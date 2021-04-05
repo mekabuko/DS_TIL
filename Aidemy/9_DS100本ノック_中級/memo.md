@@ -175,3 +175,122 @@ df_tmp = df_receipt.groupby("store_cd").amount.mean().reset_index();
 print(df_tmp.query('amount >= 330'))
 ```
 
+## 34
+> レシート明細データフレーム（df_receipt）に対し、顧客ID（customer_id）ごとに売上金額（amount）を合計して全顧客の平均を求めよ。ただし、顧客IDが"Z"から始まるのものは非会員を表すため、除外して計算すること。
+```
+print(df_receipt.query('not customer_id.str.startswith("Z")', engine='python').groupby("customer_id").amount.sum().mean())
+```
+
+## 35
+> レシート明細データフレーム（df_receipt）に対し、顧客ID（customer_id）ごとに売上金額（amount）を合計して全顧客の平均を求め、平均以上に買い物をしている顧客を抽出せよ。ただし、顧客IDが"Z"から始まるのものは非会員を表すため、除外して計算すること。なお、データは10件だけ表示させれば良い。
+- `df.query('')` 内で変数を使いたいなら `@x` とする
+```
+df_amount_sum = df_receipt.query('not customer_id.str.startswith("Z")', engine='python').groupby("customer_id").amount.sum().reset_index()
+mean_amount = df_amount_sum.amount.mean()
+print(df_amount_sum.query('amount >= @mean_amount').head(10))
+```
+
+## 75
+> 顧客データフレーム（df_customer）からランダムに1%のデータを抽出し、先頭から10件データを抽出せよ。なお、random_stateは42としなさい。
+- `df.sample()`
+```
+df_sample = df_customer.sample(frac = 0.01, random_state=42)
+print(df_sample.head(10))
+```
+
+## 76
+> 顧客データフレーム（df_customer）から性別（gender_cd）の割合に基づきランダムに10%のデータを層化抽出データし、性別ごとに件数を集計せよ。なお、random_stateは42としなさい。
+- **層化抽出** : 元データの分布を維持したまま、ランダム抽出する方法
+- `sklearn.model_selection.train_test_split` を使うと、層化抽出が可能
+```
+_, df_tmp = train_test_split(df_customer, test_size=0.1, stratify=df_customer["gender_cd"], random_state=42)
+print(df_tmp.groupby("gender_cd").agg({"customer_id":"count"}))
+```
+
+# 84
+> 顧客データフレーム（df_customer）の全顧客に対し、全期間の売上金額に占める2019年売上金額の割合を計算せよ。ただし、販売実績のない場合は0として扱うこと。そして計算した割合が0超のものを抽出せよ。 結果は10件表示させれば良い。
+```
+
+# 1.レシート明細データフレーム（df_receipt）からqueryメソッドにて該当の期間のデータを抽出する
+df_tmp_1 = df_receipt.query('20191231 >=sales_ymd >= 20190101')
+# 2. "１"で抽出したデータを顧客データフレーム（df_customer）に結合する
+df_tmp_1 = pd.merge(df_customer[["customer_id"]], df_tmp_1[["customer_id", "amount"]], how="left", on="customer_id"). groupby('customer_id').sum().reset_index().rename(columns={'amount':'amount_2019'})
+
+# 3. レシート明細データフレーム（df_receipt）を顧客データフレーム（df_customer）に結合する
+df_tmp_2 = pd.merge(df_customer[["customer_id"]], df_receipt[["customer_id", "amount"]], how="left", on="customer_id"). groupby('customer_id').sum().reset_index()
+
+# 4. "2"と"3"で得たデータを内部結合する
+df_tmp =pd.merge(df_tmp_1, df_tmp_2, how="inner", on="customer_id")
+# 5. "4"の結合時に生じた欠損値を補完する
+df_tmp['amount_2019'] = df_tmp['amount_2019'].fillna(0)
+df_tmp['amount'] = df_tmp['amount'].fillna(0)
+# 6. 2019の売り上げ金額 / 全期間の売上金額を行い割合をデータフレームに追加する 
+df_tmp['amount_rate'] = df_tmp['amount_2019'] / df_tmp['amount']
+# 7. "6"で生じた欠損値を補完する
+df_tmp['amount_rate'] = df_tmp['amount_rate'].fillna(0)
+# 8. queryメソッドにて条件に基づいて取得する
+print(df_tmp.query('amount_rate > 0').head(10))
+```
+
+## 87
+> 顧客データフレーム（df_customer）では、異なる店舗での申込みなどにより同一顧客が複数登録されている。名前（customer_name）と郵便番号（postal_cd）が同じ顧客は同一顧客とみなし、1顧客1レコードとなるように名寄せした名寄顧客データフレーム（df_customer_u）を作成せよ。ただし、同一顧客に対しては売上金額合計が最も高いものを残すものとし、売上金額合計が同一もしくは売上実績の無い顧客については顧客ID（customer_id）の番号が小さいものを残すこととする。
+- `sort_values(by=["key1", "key2"], ascending=[True, False])`
+```
+#　顧客ごとの売上金額合計を算出する
+df_tmp = df_receipt.groupby("customer_id").agg({"amount": "sum"}).reset_index()
+# 顧客データフレーム（df_customer）に売上金額合計を追加し、売上金額合計、顧客IDでソートする
+df_customer_u = pd.merge(df_customer, df_tmp, how="left", on="customer_id").sort_values(by=["amount","customer_id"], ascending=[False, True])
+# 同一顧客に対しては売上金額合計が最も高いものを残すように削除する
+df_customer_u.drop_duplicates(subset=["customer_name", "postal_cd"], keep='first', inplace=True)
+
+print('減少数: ', len(df_customer) - len(df_customer_u))
+```
+
+## 88
+> 前設問で作成したデータ（df_customer_u）を元に、顧客データフレームに統合名寄ID（integration_id）を付与したデータフレーム（df_customer_n）を作成せよ。ただし、統合名寄IDは以下の仕様で付与するものとする。
+> - 重複していない顧客：顧客ID（customer_id）を設定
+> - 重複している顧客：前設問で抽出したレコードの顧客IDを設定
+```
+# 顧客データフレーム(df_customer)と名寄顧客データフレーム（df_customer_u）を内部結合する
+df_customer_n = pd.merge(df_customer, df_customer_u, how="inner", on =['customer_name', 'postal_cd'])
+# カラム名を変更する
+df_customer_u.drop_duplicates(subset=["customer_name", "postal_cd"], keep='first', inplace=True)
+df_customer_n.rename(columns={"customer_id_y": "integration_id"} , inplace=True)
+
+print('ID数の差', len(df_customer_n['customer_id_x'].unique()) - len(df_customer_n['integration_id'].unique()))
+```
+
+## 89
+> 売上実績のある顧客に対し、予測モデル構築のため学習用データとテスト用データに分割したい。それぞれ8:2の割合でランダムにデータを分割せよ。また、random_stateは71とせよ。
+- `train_test_split(df, test_size=nn)`
+```
+#　顧客ごとの売上金額合計を算出します
+df_sales= df_receipt.groupby("customer_id").agg({"amount": "sum"}).reset_index()
+#  df_salesにある顧客のみを抽出します
+df_tmp = pd.merge(df_customer, df_sales['customer_id'], how='inner', on='customer_id')
+# 8:2の割合でランダムにデータを分割します
+df_train, df_test = train_test_split(df_tmp, test_size=0.2, train_size=0.8, random_state=71)
+print('学習データ割合: ', len(df_train) / len(df_tmp))
+print('テストデータ割合: ', len(df_test) / len(df_tmp))
+```
+
+## 90
+> レシート明細データフレーム（df_receipt）は2017年1月1日〜2019年10月31日までのデータを有している。売上金額（amount）を月次で集計し、学習用に12ヶ月、テスト用に6ヶ月のモデル構築用データを3セット作成せよ。
+```
+df_tmp = df_receipt[['sales_ymd', 'amount']].copy()
+# 西暦と月のみにし、"sales_ym"に代入します
+df_tmp['sales_ym'] = df_tmp["sales_ymd"].map(lambda x: int(x/100))
+# 月毎の"amount"を算出します
+df_tmp = df_tmp.groupby("sales_ym").amount.sum().reset_index()
+
+#  「train_size, test_size」はデータの長さ, 「slide_window,start_point」はtrainデータの始まりを決定するのに使用します
+def split_data(df, train_size, test_size, slide_window, start_point):
+    train_start = start_point * slide_window
+    test_start = train_start + train_size
+    return df[train_start: test_start], df[test_start: test_start + slide_window]
+
+df_train_1, df_test_1 = split_data(df_tmp, train_size=12, test_size=6, slide_window=6, start_point=0)
+df_train_2, df_test_2 = split_data(df_tmp, train_size=12, test_size=6, slide_window=6, start_point=1)
+df_train_3, df_test_3 = split_data(df_tmp, train_size=12, test_size=6, slide_window=6, start_point=2)
+print(df_train_3)
+```
