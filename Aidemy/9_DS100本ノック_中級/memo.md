@@ -163,7 +163,7 @@ print(df_receipt.groupby("store_cd").amount.apply(lambda x: x.std(ddof=0)).reset
 
 ## 32
 > レシート明細データフレーム（df_receipt）の売上金額（amount）について、25％刻みでパーセンタイル値を求めよ。
-- `pd.percentile(series, [25,50,75,100], axis=0)`
+- `np.percentile(series, [25,50,75,100], axis=0)`
 ```
 print(np.percentile(df_receipt["amount"], [25,50,75,100], axis=0))
 ```
