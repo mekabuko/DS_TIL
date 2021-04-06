@@ -5,7 +5,7 @@
 - あと、求められていることはできていても、出力が完全一致しないとダメな場合があり（わかりやすくするために column名を付け直した時など）、無駄にハマった。出力を見ても何が間違えているのかわからないような時には、さっさと答えを確認してよさそう。
 
 # 回答
-## Series 1
+## 共通部
 共通部は以下の通り
 ```
 import pandas as pd
@@ -18,19 +18,19 @@ df_receipt =pd.read_csv('./100knocks-preprocess/receipt.csv')
 df_store = pd.read_csv('./100knocks-preprocess/store.csv')
 df_geocode = pd.read_csv('./100knocks-preprocess/geocode.csv')
 ```
-## 1
+## 1 全項目指定
 > レシート明細のデータフレーム（df_receipt）から全項目の先頭10件を表示し、どのようなデータを保有しているか目視で確認せよ。
 ```
 print(df_receipt.head(10))
 ```
 
-## 2 
+## 2 列指定
 > レシート明細のデータフレーム（df_receipt）から売上日（sales_ymd）、顧客ID（customer_id）、商品コード（product_cd）、売上金額（amount）の順に列を指定し、10件表示させよ。
 ```
 print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].head(10))
 ```
 
-## 3
+## 3 列名変更
 > レシート明細のデータフレーム（df_receipt）から売上日（sales_ymd）、顧客ID（customer_id）、商品コード（product_cd）、売上金額（amount）の順に列を指定し、10件表示させよ。
 > - ただし、sales_ymdはsales_dateに項目名を変更しながら抽出すること。
 - `rename(columns={before:after})`
@@ -38,7 +38,7 @@ print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].head(10))
 print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].rename(columns={"sales_ymd":"sales_date"}).head(10))
 ```
 
-## 4 
+## 4 単一条件
 > レシート明細のデータフレーム（df_receipt）から売上日（sales_ymd）、顧客ID（customer_id）、商品コード（product_cd）、売上金額（amount）の順に列を指定し、以下の条件を満たすデータを抽出せよ。
 > - 顧客ID（customer_id）が"CS018205000001"
 - `query('条件')`
@@ -46,7 +46,7 @@ print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].rename(co
 print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].query('customer_id == "CS018205000001"'))
 ```
 
-## 5
+## 5 複数条件
 >レシート明細のデータフレーム（df_receipt）から売上日（sales_ymd）、顧客ID（customer_id）、商品コード（product_cd）、売上金額（amount）の順に列を指定し、以下の条件を満たすデータを抽出せよ。
 > - 顧客ID（customer_id）が"CS018205000001"
 > - 売上金額（amount）が1,000以上
@@ -55,7 +55,7 @@ print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].query('cu
 print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].query('customer_id == "CS018205000001" & amount >= 1000'))
 ```
 
-## 6
+## 6 複数条件
 >レシート明細データフレーム「df_receipt」から売上日（sales_ymd）、顧客ID（customer_id）、商品コード（product_cd）、売上数量（quantity）、売上金額（amount）の順に列を指定し、以下の条件を満たすデータを抽出せよ。
 > - 顧客ID（customer_id）が"CS018205000001"
 > - 売上金額（amount）が1,000以上または売上数量（quantity）が5以上
@@ -64,7 +64,7 @@ print(df_receipt[["sales_ymd", "customer_id", "product_cd", "amount"]].query('cu
 print(df_receipt[["sales_ymd", "customer_id", "product_cd", "quantity", "amount"]].query('customer_id == "CS018205000001" & (amount >= 1000 | quantity >= 5)'))
 ```
 
-## 7
+## 7 範囲条件
 > レシート明細のデータフレーム（df_receipt）から売上日（sales_ymd）、顧客ID（customer_id）、商品コード（product_cd）、売上金額（amount）の順に列を指定し、以下の条件を満たすデータを抽出せよ。
 > - 顧客ID（customer_id）が"CS018205000001"
 > - 売上金額（amount）が1,000以上2,000以下
@@ -73,7 +73,7 @@ print(df_receipt[["sales_ymd", "customer_id", "product_cd", "quantity", "amount"
 print(df_receipt[['sales_ymd', 'customer_id', 'product_cd', 'amount']].query('customer_id == "CS018205000001" & 1000 <= amount <= 2000'))
 ```
 
-## 8
+## 8 不一致
 > レシート明細のデータフレーム（df_receipt）から売上日（sales_ymd）、顧客ID（customer_id）、商品コード（product_cd）、売上金額（amount）の順に列を指定し、以下の条件を満たすデータを抽出せよ。
 > - 顧客ID（customer_id）が"CS018205000001"
 > - 商品コード（product_cd）が"P071401019"以外
@@ -81,7 +81,7 @@ print(df_receipt[['sales_ymd', 'customer_id', 'product_cd', 'amount']].query('cu
 print(df_receipt[['sales_ymd', 'customer_id', 'product_cd', 'amount']].query('customer_id == "CS018205000001" & product_cd != "P071401019"'))
 ```
 
-## 9 
+## 9 補集合
 >以下の処理において、出力結果を変えずにORをANDに書き換えよ。
 > `df_store.query('not(prefecture_cd == "13" | floor_area > 900)')`
 - `not(A or B) = not(A) and not(B)`
@@ -89,14 +89,14 @@ print(df_receipt[['sales_ymd', 'customer_id', 'product_cd', 'amount']].query('cu
 print(df_store.query('prefecture_cd != "13" & floor_area <= 900'))
 ```
 
-## 36
+## 36 内部結合
 > レシート明細データフレーム（df_receipt）と店舗データフレーム（df_store）を内部結合し、レシート明細データフレームの全項目と店舗データフレームの店舗名（store_name）を10件表示させよ。
 - `pd.merge(df1, df2, how="inner", on="key")`
 ```
 print(pd.merge(df_receipt, df_store[['store_cd','store_name']], how='inner', on='store_cd').head(10))
 ```
 
-## 37
+## 37 内部結合
 > 商品データフレーム（df_product）とカテゴリデータフレーム（df_category）を内部結合し、商品データフレームの全項目とカテゴリデータフレームの小区分名（category_small_name）を10件表示させよ。
 - `pd.merge(df1, df2, how="inner", on="key")`
 ```
@@ -105,7 +105,7 @@ print(pd.merge(df_receipt, df_store[['store_cd','store_name']], how='inner', on=
 print(pd.merge(df_product, df_category[['category_small_cd','category_small_name']], how='inner', on='category_small_cd').head(10))
 ```
 
-## 38
+## 38 左外部結合
 > 顧客データフレーム（df_customer）とレシート明細データフレーム（df_receipt）から、各顧客ごとの売上金額合計を求めよ。ただし、買い物の実績がない顧客については売上金額を0として表示させること。また、顧客は性別コード（gender_cd）が女性（1）であるものを対象とし、非会員（顧客IDが'Z'から始まるもの）は除外すること。なお、結果は10件だけ表示させれば良い。
 - `pd.merge(df1, df2, how="left", on="key")`
 - `df.groupby("key").key.sum()`
@@ -120,7 +120,7 @@ df_tmp = df_customer.query('gender_cd == 1 & not(customer_id.str.startswith("Z")
 print(pd.merge(df_tmp, df_amount_sum, on="customer_id", how="left")[["customer_id", "amount"]].fillna(0).head(10))
 ```
 
-## 39
+## 39 完全外部結合
 >レシート明細データフレーム（df_receipt）から売上日数の多い顧客の上位20件と、売上金額合計の多い顧客の上位20件を抽出し、完全外部結合せよ。ただし、非会員（顧客IDが'Z'から始まるもの）は除外すること。
 - `pd.merge(df1, df2, how="outer", on="key")`
 - `df.groupby("key").count()`
@@ -163,7 +163,7 @@ print(\
     df_sum = df_sum.sort_values('amount', ascending=False).head(20)
     ```
 
-## 40
+## 40 クロス結合
 > 全ての店舗と全ての商品を組み合わせると何件のデータとなるか調査したい。店舗（df_store）と商品（df_product）を直積した件数を計算せよ。
 - `df.copy()`
 ```
@@ -175,7 +175,7 @@ tmp_df_product["key"] = 1
 print(len(pd.merge(tmp_df_store, tmp_df_product, how="outer", on="key")))
 ```
 
-## 41
+## 41 自己結合による時系列のずらし
 > レシート明細データフレーム（df_receipt）の売上金額（amount）を日付（sales_ymd）ごとに集計し、前日からの売上金額増減を計算せよ。なお、計算結果は10件表示すればよい。
 - df.shift()
 - これは `df.diff()` を使っても同じことができそう
@@ -198,7 +198,7 @@ df_sales_amount_by_date = df_receipt.groupby("sales_ymd").amount.sum().reset_ind
 df_sales_amount_by_date["diff_amount"] = df_sales_amount_by_date.diff(periods=1, axis=0)["amount"]
 ```
 
-## 42
+## 42 自己結合による時系列のずらし
 > レシート明細データフレーム（df_receipt）の売上金額（amount）を日付（sales_ymd）ごとに集計し、各日付のデータに対し、１日前、２日前、３日前のデータを結合せよ。結果は10件表示すればよい。
 - df.dropna()
 ```
@@ -212,7 +212,7 @@ df_lag.columns = ['sales_ymd', 'amount', 'lag_ymd_1', 'lag_amount_1', 'lag_ymd_2
 print(df_lag.dropna().head(10))
 ```
 
-## 43
+## 43 縦から横への変換
 > レシート明細データフレーム（df_receipt）と顧客データフレーム（df_customer）を結合し、性別（gender）と年代（ageから計算）ごとに売上金額（amount）を合計した売上サマリデータフレーム（df_sales_summary）を作成せよ。
 性別は0が男性、1が女性、9が不明を表すものとする。
 ただし、項目構成は年代、女性の売上金額、男性の売上金額、性別不明の売上金額の4項目とすること（縦に年代、横に性別のクロス集計）。また、年代は10歳ごとの階級とすること。
@@ -237,7 +237,7 @@ df_sales_summary.columns = ['era', 'male', 'female', 'unknown']
 print(df_sales_summary.head(10))
 ```
 
-## 44
+## 44 横から縦への変換
 > 前設問(43問目)で作成した売上サマリデータフレーム（df_sales_summary）は性別の売上を横持ちさせたものであった。
 このデータフレームから性別を縦持ちさせ、年代、性別コード、売上金額の3項目に変換し、変換後の売上サマリデータフレーム（df_sales_summary）を出力せよ。
 ただし、性別コードは男性を'00'、女性を'01'、不明を'99'とする。
@@ -255,7 +255,7 @@ df_sales_summary = df_sales_summary.replace({"male": "00", "female": "01", "unkn
 print(df_sales_summary)
 ```
 
-## 63
+## 63 四則演算
 > 商品データフレーム（df_product）の単価（unit_price）と原価（unit_cost）から、各商品の利益額を算出せよ。結果は10件表示させれば良い。
 ```
 tmp_df_product = df_product.copy()
@@ -263,7 +263,7 @@ tmp_df_product['unit_profit'] = df_product['unit_price'] - df_product['unit_cost
 print(tmp_df_product.head(10))
 ```
 
-## 64
+## 64 四則演算
 > 商品データフレーム（df_product）の単価（unit_price）と原価（unit_cost）から、各商品の利益率の全体平均を算出せよ。 ただし、単価と原価にはNULLが存在することに注意せよ。
 ```
 tmp_df_product = df_product.copy()
@@ -275,7 +275,7 @@ df_mean = tmp_df_product['unit_profit_rate'].mean()
 print(df_mean)
 ```
 
-## 65
+## 65 四則演算
 > 商品データフレーム（df_product）の各商品について、利益率が30%となる新たな単価を求めよ。ただし、1円未満は切り捨てること。そして結果を10件表示させ、利益率がおよそ30％付近であることを確認せよ。ただし、単価（unit_price）と原価（unit_cost）にはNULLが存在することに注意せよ。
 - `np.floor()`: NaN があってもOK！
 ```
@@ -288,7 +288,7 @@ df_tmp['new_profit_rate'] = (df_tmp['new_price'] - df_tmp['unit_cost'])/df_tmp['
 print(df_tmp.head(10))
 ```
 
-# 66
+# 66 小数の扱い
 > 商品データフレーム（df_product）の各商品について、利益率が30%となる新たな単価を求めよ。今回は、1円未満を四捨五入すること（0.5については偶数方向の丸めで良い）。そして結果を10件表示させ、利益率がおよそ30％付近であることを確認せよ。ただし、単価（unit_price）と原価（unit_cost）にはNULLが存在することに注意せよ。
 - `np.round()`
 ```
@@ -301,7 +301,7 @@ df_tmp['new_profit_rate'] = (df_tmp['new_price'] - df_tmp['unit_cost'])/df_tmp['
 print(df_tmp.head(10))
 ```
 
-# 67
+# 67 小数の扱い
 > 商品データフレーム（df_product）の各商品について、利益率が30%となる新たな単価を求めよ。今回は、1円未満を切り上げること。そして結果を10件表示させ、利益率がおよそ30％付近であることを確認せよ。ただし、単価（unit_price）と原価（unit_cost）にはNULLが存在することに注意せよ。
 - `np.ceil()`
 ```
@@ -314,7 +314,7 @@ df_tmp['new_profit_rate'] = (df_tmp['new_price'] - df_tmp['unit_cost'])/df_tmp['
 print(df_tmp.head(10))
 ```
 
-# 68
+# 68 小数の扱い
 > 商品データフレーム（df_product）の各商品について、消費税率10%の税込み金額を求めよ。 1円未満の端数は切り捨てとし、結果は10件表示すれば良い。ただし、単価（unit_price）にはNULLが存在することに注意せよ。
 ```
 df_tmp = df_product.copy()
@@ -323,7 +323,7 @@ df_tmp['price_tax'] = np.floor(df_tmp['unit_price'] * 1.10)
 # print関数を使用し、df_tmpを10件表示させます
 print(df_tmp.head(10))
 ```
-# 69
+# 69 集計結果の演算
 > レシート明細データフレーム（df_receipt）と商品データフレーム（df_product）を結合し、顧客毎に全商品の売上金額合計と、カテゴリ大区分（category_major_cd）が"07"（瓶詰缶詰）の売上金額合計を計算の上、両者の比率を求めよ。抽出対象はカテゴリ大区分"07"（瓶詰缶詰）の購入実績がある顧客のみとし、結果は10件表示させればよい。
 
 ```
@@ -341,7 +341,7 @@ df_tmp_3['rate_07'] = df_tmp_3["amount_07"] / df_tmp_3["amount_all"]
 print(df_tmp_3.head(10))
 ```
 
-## 92
+## 92 正規化
 > 顧客データフレーム（df_customer）では、性別に関する情報が非正規化の状態で保持されている。これを第三正規化せよ。
 - `df.drop()`
 - `df.drop_duplicates()`
@@ -354,14 +354,14 @@ print(df_gender)
 print(df_customer_s)
 ```
 
-## 93
+## 93 非正規化
 > 商品データフレーム（df_product）では各カテゴリのコード値だけを保有し、カテゴリ名は保有していない。カテゴリデータフレーム（df_category）と組み合わせて非正規化し、カテゴリ名を保有した新たな商品データフレームを作成せよ。
 ```
 df_product_full = pd.merge(df_product, df_category[["category_small_cd", "category_major_name","category_medium_name","category_small_name"]], how="inner", on="category_small_cd")
 print(df_product_full)
 ```
 
-## 94
+## 94 CSV出力(ヘッダ有り、コード変換なし)
 > 93問目で作成したカテゴリ名付き商品データ（df_product_full ）を以下の仕様でファイル出力せよ。
 なお、出力先のパスは100knocks-preprocess配下とし、ファイル名はP_df_product_full_UTF-8_header.csvとせよ。
 > - ファイル形式はCSV（カンマ区切り）
@@ -374,7 +374,7 @@ print(df_product_full)
 # ファイルへ出力
 df_product_full.to_csv('./100knocks-preprocess/P_df_product_full_UTF-8_header.csv', header=True, index=False, encoding='utf-8')
 ```
-## 95
+## 95  CSV出力(ヘッダ有り、UTF-8->SJIS)
 > 93問目で作成したカテゴリ名付き商品データ（df_product_full ）を以下の仕様でファイル出力せよ。
 なお、出力先のパスは100knocks-preprocess配下とし、ファイル名はP_df_product_full_CP932_header.csvとせよ。
 > - ファイル形式はCSV（カンマ区切り）
@@ -386,7 +386,7 @@ df_product_full.to_csv('./100knocks-preprocess/P_df_product_full_UTF-8_header.cs
 df_product_full.to_csv('./100knocks-preprocess/P_df_product_full_CP932_header.csv',header=True, encoding="CP932")
 ```
 
-## 96
+## 96 CSV出力(ヘッダ無し、コード変換なし)
 > 93問目で作成したカテゴリ名付き商品データ（df_product_full ）を以下の仕様でファイル出力せよ。
 なお、出力先のパスは100knocks-preprocess配下とし、ファイル名はP_df_product_full_UTF-8_noh.csvとせよ。
 > - ファイル形式はCSV（カンマ区切り）
@@ -399,7 +399,7 @@ df_product_full.to_csv('./100knocks-preprocess/P_df_product_full_CP932_header.cs
 df_product_full.to_csv('./100knocks-preprocess/P_df_product_full_UTF-8_noh.csv',header=False, index=False, encoding="utf-8")
 ```
 
-## 97 
+## 97 CSV入力(ヘッダ有り、コード変換なし) 
 > 94問目で作成した以下形式のファイルを読み込み、データフレームを作成せよ。また、先頭10件を表示させ、正しくとりまれていることを確認せよ。
 > - ファイル形式はCSV（カンマ区切り）
 > - ヘッダ有り
@@ -410,7 +410,7 @@ df_tmp = pd.read_csv('./100knocks-preprocess/P_df_product_full_UTF-8_header.csv'
 print(df_tmp.head(10))
 ```
 
-## 98
+## 98 CSV入力(ヘッダ無し、コード変換なし)
 > 96問目で作成した以下形式のファイルを読み込み、データフレームを作成せよ。また、先頭10件を表示させ、正しくとりまれていることを確認せよ。
 > ファイル形式はCSV（カンマ区切り）
 > ヘッダ無し
@@ -420,7 +420,7 @@ df_tmp = pd.read_csv("./100knocks-preprocess/P_df_product_full_UTF-8_noh.csv", h
 print(df_tmp.head(10))
 ```
 
-## 99
+## 99 TSV出力(ヘッダ有り、コード変換なし)
 > （df_product_full ）を以下の仕様でファイル出力せよ。
 なお、出力先のパスは100knocks-preprocess配下とし、ファイル名はP_df_product_full_UTF-8_header.tsvとせよ。
 > - ファイル形式はTSV（タブ区切り）
@@ -431,7 +431,7 @@ print(df_tmp.head(10))
 df_product_full.to_csv("./100knocks-preprocess/P_df_product_full_UTF-8_header.tsv",header=True, index=False, encoding="utf-8", sep='\t')
 ```
 
-## 100
+## 100 TSV入力(ヘッダ有り、コード変換なし)
 > 99問目で作成した以下形式のファイルを読み込み、データフレームを作成せよ。また、先頭10件を表示させ、正しくとりまれていることを確認せよ。
 > - ファイル形式はTSV（タブ区切り）
 > - ヘッダ有り
