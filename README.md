@@ -16,7 +16,7 @@
 ### Utility
 - [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
 
-## Aidemy Courses
+## Aidemy Courses (https://aidemy.net)
 0. Python入門 : 2021/04/01
     - **Python** の基礎
     - 文字の出力、変数の概要、条件分岐、ループ など、基本のき
@@ -46,3 +46,5 @@
     - 「あいまい条件」「ソート」「集計」「サンプリング」
 10. データサイエンス100本ノック（構造化データ加工編）（上級）: 2021/04/06 ~ 2021/04/07
     - 「データ変換」「数値変換」「日付型の計算」「外れ値・異常値」
+11. スクレイピング入門
+    - BeautifulSoupを用いたスクレイピングの手法
