@@ -13,6 +13,7 @@
     - [和訳](https://github.com/Gedevan-Aleksizde/pandas-cheat-sheet-ja/blob/master/doc/Pandas_Cheat_Sheet_ja.pdf)
 - [Matplotlib](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Python_Matplotlib_Cheat_Sheet.pdf)
 - [scikit-learn](https://s3.amazonaws.com/assets.datacamp.com/blog_assets/Scikit_Learn_Cheat_Sheet_Python.pdf)
+    - [scikit-learn argorithm](http://scikit-learn.org/stable/tutorial/machine_learning_map/index.html)
 ### Utility
 - [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
 
@@ -40,11 +41,11 @@
 7. 機械学習のための線形代数: 2021/04/03
     - かなり忘れている。。とりあえずこなしただけ。
     - 特に手計算が辛すぎる。途中からWolframAlpha頼りに。
-8. データサイエンス100本ノック（構造化データ加工編）（初級）: 2021/04/03 ~ 2021/04/04
+8. データサイエンス100本ノック（構造化データ加工編）（初級）: 2021/04/03 ~ 04
     - 「列や行に対する操作」「結合」「縦横変換」「四則演算」
-9. データサイエンス100本ノック（構造化データ加工編）（中級）: 2021/04/04 ~ 2021/04/05
+9. データサイエンス100本ノック（構造化データ加工編）（中級）: 2021/04/04 ~ 05
     - 「あいまい条件」「ソート」「集計」「サンプリング」
-10. データサイエンス100本ノック（構造化データ加工編）（上級）: 2021/04/06 ~ 2021/04/07
+10. データサイエンス100本ノック（構造化データ加工編）（上級）: 2021/04/06 ~ 07
     - 「データ変換」「数値変換」「日付型の計算」「外れ値・異常値」
 11. スクレイピング入門: 2021/04/07
     - BeautifulSoup等を用いたスクレイピングの手法
@@ -74,6 +75,5 @@
 21. 自然言語処理基礎: 2021/4/15, 17
     - 自然言語処理の方法について
     - 文章を数値に変換する手法を学び、教師あり学習（分類）を使ってカテゴリ分類
-22. タイタニック（kaggleコンペ）: 2021/04/17
+22. タイタニック（kaggleコンペ）: 2021/04/17 ~ 19
     - 機械学習を用いて、タイタニック号の悲劇からどのような人々が生き残る可能性が高いのかを予測
-    
