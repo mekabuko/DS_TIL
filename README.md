@@ -1,5 +1,7 @@
 # Today I Learned, about Data Science
-- 学習記録。
+学習記録。
+
+--- 
 ## Links
 ### 公式ドキュメント等
 - Python公式リファレンス: https://docs.python.org/ja/3/reference/index.html
@@ -17,7 +19,19 @@
 ### Utility
 - [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
 
-## Aidemy Courses (https://aidemy.net)
+---
+
+## TODO
+### 優先度高
+- [ ] Aidemy のオプションコース
+### 優先度低
+- [ ] タイタニックのモデル精度向上
+- [ ] 住宅予測のモデル精度向上
+
+---
+
+## Aidemy Courses h(https://aidemy.net)
+### 受講必須コース(+α): 2021/04/01 ~ 2021/04/20, 所用時間 35時間程度。
 0. Python入門 : 2021/04/01
     - **Python** の基礎
     - 文字の出力、変数の概要、条件分岐、ループ など、基本のき
@@ -79,3 +93,7 @@
     - 機械学習を用いて、タイタニック号の悲劇からどのような人々が生き残る可能性が高いのかを予測
 23. 住宅価格予測（kaggleコンペ）: 2021/04/20
     - 機械学習を用いて、どのような住宅がどのような価格になるのかを予測
+24. 習熟テスト : 2021/04/20
+    - 合格。完了。
+    
+### オプションコース
