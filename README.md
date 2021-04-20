@@ -1,7 +1,13 @@
 # Today I Learned, about Data Science
 学習記録。
 
---- 
+## TODO
+### 優先度高
+- [ ] Aidemy のオプションコース
+### 優先度低
+- [ ] タイタニックのモデル精度向上
+- [ ] 住宅予測のモデル精度向上
+
 ## Links
 ### 公式ドキュメント等
 - Python公式リファレンス: https://docs.python.org/ja/3/reference/index.html
@@ -18,17 +24,6 @@
     - [scikit-learn argorithm](http://scikit-learn.org/stable/tutorial/machine_learning_map/index.html)
 ### Utility
 - [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
-
----
-
-## TODO
-### 優先度高
-- [ ] Aidemy のオプションコース
-### 優先度低
-- [ ] タイタニックのモデル精度向上
-- [ ] 住宅予測のモデル精度向上
-
----
 
 ## Aidemy Courses h(https://aidemy.net)
 ### 受講必須コース(+α): 2021/04/01 ~ 2021/04/20, 所用時間 35時間程度。
