@@ -25,7 +25,7 @@
 ### Utility
 - [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
 
-## Aidemy Courses h(https://aidemy.net)
+## Aidemy Courses(https://aidemy.net)
 ### 受講必須コース(+α): 2021/04/01 ~ 2021/04/20, 所用時間 35時間程度。
 0. Python入門 : 2021/04/01
     - **Python** の基礎
@@ -95,3 +95,5 @@
 0. データベース入門: 2021/04/21
     - データベースの基本的な知識
     - 概論だけ。特にSQLなどに踏み込んだ内容ではない。基本情報を持っていれば十分カバーされる範囲。
+1. SQL基礎: 2021/4/22
+    - データベースからの読み出し、データベースへの書き込み等の基礎的なSQL文法
