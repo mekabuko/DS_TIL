@@ -1,12 +1,6 @@
 # Today I Learned, about Data Science
 学習記録。
 
-## TODO
-### 優先度高
-- [ ] Aidemy のオプションコース
-### 優先度低
-- [ ] タイタニックのモデル精度向上
-- [ ] 住宅予測のモデル精度向上
 
 ## Links
 ### 公式ドキュメント等
@@ -24,6 +18,20 @@
     - [scikit-learn argorithm](http://scikit-learn.org/stable/tutorial/machine_learning_map/index.html)
 ### Utility
 - [WolframAlpha(計算機)](https://ja.wolframalpha.com/examples/mathematics/algebra/matrices/)
+
+## Kaggle コンペ
+1. タイタニック: 2021/04/17 ~ 19
+    - 機械学習を用いて、タイタニック号の悲劇からどのような人々が生き残る可能性が高いのかを予測
+    - aidemy のコースの一環
+    - https://www.kaggle.com/c/titanic
+2. 住宅価格予測: 2021/04/20
+    - 機械学習を用いて、どのような住宅がどのような価格になるのかを予測
+    - aidemy のコースの一環
+    - https://www.kaggle.com/c/house-prices-advanced-regression-techniques
+3. レンタサイクル需要予測: 2021/04/29 ~ 2021/05/24
+    - レンタサイクルの需要予測を、過去の利用データと気象データを用いたモデルで行う
+    - 研修の一環
+    - https://www.kaggle.com/c/bike-sharing-demand
 
 ## Aidemy Courses(https://aidemy.net)
 ### 受講必須コース(+α): 2021/04/01 ~ 2021/04/20, 所用時間 35時間程度。
@@ -106,3 +114,6 @@
     - 深層学習のネットワークである、RNNとLSTMについて学ぶ
     - 深層学習では、時系列データの分析ができない理由、RNNなどを使うことで、どのようにして時系列分析ができるようになるのか
     - 時系列データと自然言語処理の例を学習
+5. 時系列解析3: 2021/5/26
+    - LSTMを用いて、売上予測を実装
+    - 時系列データの前処理から、ネットワークの構築・予測を学習
