@@ -136,3 +136,6 @@
     - このソフトウェアが使う深層学習モデルの理論を解説
 12. 深層学習の適用（WaveNet）
     - テキスト音声合成(text to speech: TTS)のディープラーニングモデルの一つ、WaveNetについて
+13. 深層学習の適用（自然言語処理）
+    - word embeddingとも呼ばれる単語の埋め込み表現
+    - 翻訳モデルの Transformer とその基盤手法である Attention
