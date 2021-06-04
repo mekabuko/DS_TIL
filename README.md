@@ -34,6 +34,7 @@
     - https://www.kaggle.com/c/bike-sharing-demand
 
 ## Aidemy Courses(https://aidemy.net)
+- 利用規約(https://aidemy.net/terms-of-service/)を遵守して、引用などの範囲で学習内容を公開
 ### 受講必須コース(+α): 2021/04/01 ~ 2021/04/20, 所用時間 35時間程度。
 0. Python入門 : 2021/04/01
     - **Python** の基礎
