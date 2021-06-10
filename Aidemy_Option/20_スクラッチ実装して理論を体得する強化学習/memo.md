@@ -1,5 +1,3 @@
-# サマリ
-
 # メモ
 ## 1. 強化学習入門
 ### 1.1 強化学習とは
@@ -739,12 +737,398 @@ calculate_value()
 ## 3. 動的計画法とTD手法
 ### 3.1 動的計画法
 #### 3.1.1 動的計画法とは
+- 環境のモデルがMDP（マルコフ決定過程）として完全に与えられている時の解法アルゴリズムのこと
 #### 3.1.2 方策評価
+- 方策評価(policy evaluation): ある特定の手法πを取った時の価値関数Vπ(s)を計算する方法
+    1. 閾値εを事前に設定。更新量がεより小さくなるまで計算を繰り返す
+    2. 方策πを入力
+    3. V(s) を全ての状態において 0 と仮定
+    4. 5 ~ 6 を繰り返す
+    5. δ = 0
+    6. 全ての状態sについて7~10の動作を繰り返す
+    7. v = V(s)
+    8. V(s) = sum(π(a|s))sum(P(s'|s, a)(r(s,a,s') + γV(s')) で更新
+    9. δ = max(δ|v-V(s)|)
+        - 一番大きい更新量を保存
+        - これによって、全ての方策について更新量がε以下になるまで繰り返す
+    10. δ < ε ならば V(s) を Vπ の近似解として出力
+- 実装例
+```
+from markov import *
+
+
+def policy_evaluation(pi, states, epsilon=0.001):
+    while True:
+        # δを定義
+        delta = 0
+        
+        # 全てのstateにおいてループを回す
+        for s in states:
+            # vにVを代入
+            v = V.copy()
+
+            # xという変数に計算をしておいてV[s]にxを代入
+            x = 0
+            
+            # pはエピソードTで得られる遷移先
+            for (p, s1) in T(s, pi[s]):
+                # V[s]を計算
+                x += p * (R(s, pi[s], s1) + gamma * V[s1])
+            V[s] = x
+            
+            # δを計算
+            delta = max(delta, abs(v[s] - V[s]))
+            
+        # δ<εの場合Vを返す
+        if delta < epsilon:
+            return V
+
+state_transition = np.array(
+    [[0, 0, 0, 0.3, 5],
+    [0, 1, 0, 0.7, -10],
+    [0, 0, 1, 1, 5],
+    [1, 0, 1, 1, 5],
+    [1, 2, 0, 0.8, 100],
+    [1, 1, 0, 0.2, -10]]
+)
+
+def T(state, action):
+    if (state in terminals):
+        return [(0, terminals)]
+
+    X = state_transition[(state_transition[:, 0] == state)&(state_transition[:, 2] == action)]
+
+    A = X[:, [3, 1]]
+    return [tuple(A[i, :]) for i in range(A.shape[0])]
+
+states = np.unique(state_transition[:, 0])
+actlist = np.unique(state_transition[:, 2])
+terminals = [2]
+gamma = 0.8
+
+V = {s: 0 for s in np.hstack((states,terminals))}
+pi = {s: 0 for s in states}
+policy_evaluation(pi, states, epsilon =0.001)
+```
 #### 3.1.3 方策反復
+- 方策反復: 改善と評価を繰り返すことで最適価値関数を導き出すこと
+    1. 全ての状態 s に対して V(s) と π(s) を初期化
+    2. イプシロンが閾値以下になるまで以下を繰り返す（方策評価）
+        1. δ=0
+        2. 各状態 s について
+            1. v = V(s)
+            2. V(s) = sum(π(a|s))sum(P(s'|s, a)(r(s,a,s') + γV(s')) で更新
+            3. δ = max(δ|v-V(s)|)
+    3. polity-flag = True
+    4. 各状態 s について
+        1. b = π(s)
+        2. π(s) = arg max(sum(P(s'|s,a)(r(s,a,s') + γV(s'))))
+            - 2. の方策評価を行なった後の価値関数を使ってすべての action における価値関数を求める
+            - 方策の更新を合わせて行う
+        3. b ≠ π(s) なら policy-flag = False
+    5. policy-flag = True で終了。それ以外は 2. から繰り返し
+- 実装例
+```
+from markov import *
+random.seed(0)
+
+# 方策評価関数です
+def policy_evaluation(pi, V, states, epsilon=0.001):
+    while True:
+        delta = 0
+        for s in states:
+            v = V.copy()
+            V[s] = sum([p * (R(s, pi[s], s1) + gamma * V[s1]) for (p, s1) in T(s,pi[s])])
+            delta = max(delta,abs(v[s] - V[s]))
+        if  delta < epsilon:
+            return V
+
+# 方策反復関数
+def policy_iteration(states):
+    # 1. 価値関数Vと方策πを初期化
+    V = {s: 0 for s in np.hstack((states, terminals))}
+    pi = {s: random.choice(actions(s)) for s in states}
+    while True:
+        # 2. 方策評価をしてください
+        V = policy_evaluation(pi, V, states)
+        policy_flag = True
+
+        for s in states:
+            # 4. 更新した価値関数Vから報酬が得られる順に行動をソートしてください
+            action = sorted(actions(s), key=lambda a:sum([p * gamma * V[s1] + p * R(s, a, s1) for (p, s1) in T(s, a)]), reverse=True)
+            if action[0] != pi[s]:
+                pi[s] = action[0]
+                policy_flag = False
+        if policy_flag:
+            return pi
+
+state_transition = np.array(
+    [[0, 0, 0, 0.3, 5],
+    [0, 1, 0, 0.7, -10],
+    [0, 0, 1, 1, 5],
+    [1, 0, 1, 1, 5],
+    [1, 2, 0, 0.8, 100],
+    [1, 1, 0, 0.2, -10]]
+)
+
+states = np.unique(state_transition[:,0])
+terminals = [2]
+init = [0]
+gamma = 0.8
+
+# 関数を動かして結果を表示します
+pi = policy_iteration(states)
+print(pi)
+```
 #### 3.1.4 価値反復
+- 方策反復でのアルゴリズムには、毎回全ての状態について価値関数を計算し直す事を複数回しなければならないという問題がある
+- 価値反復: 価値関数の計算を１回にできるように改善
+    1. すべての状態 s に対して V(s) を初期化
+    2. 繰り返し
+        1. δ = 0
+        2. 各状態 s について
+            1. v = V(s)
+            2. V(s) = sum(π(a|s))sum(P(s'|s, a)(r(s,a,s') + γV(s')) で更新
+            3. δ = max(δ|v-V(s)|)
+            4. δ < ε ならば 終了
+    3. π = arg max(sum(P(s'|s,a)(r(s,a,s') + γV(s')))) を出力
+- 実装例
+```
+from markov import *
+random.seed(0)
+
+# 価値反復関数
+def value_iteration(states, actlist, epsilon=0.001):
+    # 1. 状態価値Vの初期化
+    V = {s: 0 for s in np.hstack((states, terminals))}
+    # 2. 価値関数の更新
+    while True:
+        delta = 0
+        for s in states:
+            v = V.copy()
+            # V[s]を計算してください
+            V[s] = max([sum([p * (R(s,a,s1) + gamma*V[s1]) for (p,s1) in T(s,a)]) for a in actlist])
+            delta = max(delta, abs(v[s] - V[s]))
+        if  delta < epsilon:
+            break
+    # 3. greedyな方策の計算
+    pi = {}
+    for s in states:
+        # V[s]から最も報酬が得られる行動を計算
+        action = sorted(actions(s), key=lambda a:sum([p * gamma * V[s1] + p * R(s,a,s1) for (p, s1) in T(s, a)]), reverse=True)
+        pi[s] = action[0]
+    return pi
+
+state_transition = np.array(
+    [[0, 0, 0, 0.3, 5],
+    [0, 1, 0, 0.7, -10],
+    [0, 0, 1, 1, 5],
+    [1, 0, 1, 1, 5],
+    [1, 2, 0, 0.8, 100],
+    [1, 1, 0, 0.2, -10]]
+)
+
+states = np.unique(state_transition[:, 0])
+actlist = np.unique(state_transition[:, 2])
+terminals = [2]
+init = [0]
+gamma = 0.8
+
+pi = value_iteration(states,actlist,epsilon=0.001)
+print(pi)
+```
 ### 3.2 TD手法
 #### 3.2.1 TD手法とは
+- 動的計画法の欠点：状態遷移確率があらかじめわかっていなければならない
+- TD手法：Time Differenceの事で、最終結果を見ずに、現在の推定値を利用して次の推定値を更新していく方法
+- TD手法の有名な例
+    - Sarsa
+    - Q-learning
 #### 3.2.2 Sarsa
+- ベルマン方程式を試行錯誤しながら解いていくアルゴリズムの一つ
+- 実装例（引用）
+```
+import numpy as np
+np.random.seed(0)
+
+def T(state, direction, actions):
+        return [(0.8, go(state, actions[direction])),
+                (0.1, go(state, actions[(direction + 1) % 4])),
+                (0.1, go(state, actions[(direction - 1) % 4]))]
+
+def go(state, direction):
+    return [s + d for s, d in zip(state, direction)]
+
+# ランダムに次の行動を決定
+def get_action(t_state, episode):
+    next_action = np.random.choice(len(actions))
+    return next_action
+
+
+# chapter2.3 報酬と収益 で実装した関数を少し変更して使用
+# 返し値にrewardを追加
+def take_single_action(state, direction,actions):
+    x = np.random.uniform(0, 1)
+    cumulative_probability = 0.0
+    for probability_state in T(state,direction,actions):
+        probability, next_state = probability_state
+        cumulative_probability += probability
+        if x < cumulative_probability:
+            break
+    reward = situation[next_state[0],next_state[1]]
+    if reward is None:
+        return state, -0.04
+    else:
+        return next_state, reward
+
+
+num_episodes = 30
+max_steps = 100
+total_reward = np.zeros(5)
+goal_average_reward = 0.7
+
+# 環境を定義
+situation = np.array([[None, None, None, None, None, None],
+                      [None, -0.04, -0.04, -0.04, -0.04, None],
+                      [None, -0.04, None, -0.04, -1, None],
+                      [None, -0.04, -0.04, -0.04, +1,None],
+                      [None, None, None, None, None, None]])
+            
+
+terminals=[[2, 4], [3, 4]]
+init = [1, 1]
+actions = ((1, 0), (0, 1), (-1, 0), (0, -1))
+
+
+# エピソードの繰り返しを定義
+for episode in range(num_episodes):
+    state = init
+    # エピソードの繰り返しを定義
+    action = get_action(state, episode)
+    episode_reward = 0
+
+    # 時間ステップのループを定義
+    for t in range(max_steps):
+        next_state, reward = take_single_action(state, action, actions)
+        episode_reward += reward
+        next_action = get_action(state, episode)
+        state = next_state
+        action = next_action
+        if state in terminals :
+            break
+            
+    #報酬を記録        
+    total_reward = np.hstack((total_reward[1:],episode_reward))
+    print(total_reward)
+    print("Episode %d has finished. t=%d" %(episode+1, t+1))
+    # 直近の5エピソードが規定報酬以上であれば成功
+    if (min(total_reward) >= goal_average_reward):
+        print('Episode %d train agent successfuly! t=%d' %(episode,t))
+        break 
+```
 #### 3.2.3 SarsaにおけるQ関数の実装
+- Q関数:　[全ての状態×全ての行動]　の配列
 #### 3.2.4 Sarsaでのε-greedy手法の実装
+- Q関数を使いつつ、より優れた方法をε-greedyで探索
+- 実装例(引用)
+```
+import numpy as np
+np.random.seed(0)
+
+
+def T(state, direction, actions):
+        return [(0.8, go(state, actions[direction])),
+                (0.1, go(state, actions[(direction + 1) % 4])),
+                (0.1, go(state, actions[(direction - 1) % 4]))]
+
+
+def go(state, direction):
+    return [s+d for s, d in zip(state, direction)]
+
+# 空欄を埋めてepsilon-greedy手法により次の行動を決定してください
+def get_action(t_state, episode):
+    epsilon = 0.5 * (1 / (episode + 1))
+    if epsilon <= np.random.uniform(0, 1):
+        next_action = np.argmax(q_table[t_state])
+    else:
+        next_action = np.random.choice(len(actions))
+    return next_action
+
+
+
+def take_single_action(state, direction, actions):
+    x = np.random.uniform(0, 1)
+    cumulative_probability = 0.0
+    for probability_state in T(state, direction, actions):
+        probability, next_state = probability_state
+        cumulative_probability += probability
+        if x < cumulative_probability:
+            break
+    reward = situation[next_state[0], next_state[1]]
+    if reward is None:
+        return state, -0.04
+    else:
+        return next_state, reward
+
+
+
+def update_Qtable(q_table, t_state, action, reward, t_next_state, next_action):
+    gamma = 0.8
+    alpha = 0.4
+    q_table[t_state, action] += alpha * (reward + gamma * q_table[t_next_state, next_action] - q_table[t_state, action])
+    return q_table
+
+def trans_state(state):
+    return sum([n*(10**i) for i, n in enumerate(state)])
+
+q_table = np.random.uniform(
+    low=-0.01, high=0.01, size=(10 ** 2, 4))
+
+num_episodes = 500
+max_number_of_steps = 1000
+total_reward_vec = np.zeros(5)
+goal_average_reward = 0.7
+
+situation = np.array([[None, None, None, None, None, None],
+                      [None, -0.04, -0.04, -0.04, -0.04, None],
+                      [None, -0.04, None, -0.04, -1, None],
+                      [None, -0.04, -0.04, -0.04, +1, None],
+                      [None, None, None, None, None, None]])
+            
+
+terminals=[[2, 4], [3, 4]]
+init = [1,1]
+actions = ((1, 0), (0, 1), (-1, 0), (0, -1))
+state = [n*(10**i) for i,n in enumerate(init)]
+
+for episode in range(num_episodes):
+    state = init
+    t_state = trans_state(state)
+    action = np.argmax(q_table[t_state])
+    episode_reward = 0
+
+    for t in range(max_number_of_steps): 
+        next_state, reward = take_single_action(state, action, actions)
+        episode_reward += reward  
+        t_next_state = trans_state(next_state)
+        next_action = get_action(t_next_state, episode)  
+        q_table = update_Qtable(q_table, t_state, action, reward, t_next_state, next_action)
+        state = next_state
+        t_state = trans_state(state)
+        action = next_action
+        
+        if state in terminals :
+            break
+    total_reward_vec = np.hstack((total_reward_vec[1:],episode_reward))  
+    print(total_reward_vec)
+    print("Episode %d has finished. t=%d" %(episode+1, t+1))
+    print(min(total_reward_vec),goal_average_reward)
+    if (min(total_reward_vec) >= goal_average_reward): 
+        print('Episode %d train agent successfuly! t=%d' %(episode, t))
+        break 
+
+```
 #### 3.2.5 Q学習
+- Q学習も全体の流れはSarsaと変わりない。以下の点のみ異なる。
+    1. q関数の更新を行ったあとに次の行動を決定すること 
+    2. q関数の更新の方法
