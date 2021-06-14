@@ -150,18 +150,365 @@ y = Dropout(0.3)(x)
 ## 2. 実践編：回答文選択システムの実装
 ### 2.1 回答文選択システム
 #### 2.1.1 回答文選択システム
+- 質問文に対して、回答文の候補がいくつか与えられて、その中から正しい回答文を自動で選択するシステム
+    - 用いるデータセットはAllen AIのTextbook Question Answering
+- 自然言語処理で深層学習を使うときの前処理
+    1. 分かち書きと正規化
+    2. 単語のID化
+    3. Padding
+        - 深層学習では、入力の長さを統一しないと行列演算ができないので、Paddingで長さを統一する
 ### 2.2 データの前処理
 #### 2.2.1 正規化・分かち書き
+- 英語の例で言うと…
+- 正規化：大文字ないし小文字統一
+    - `string.lower()` など
+- 分かち書き
+    - nltk などのツールがある
+- nltkでの実装例
+```
+from nltk.tokenize import word_tokenize
+t = "he isn't darwin."
+t = word_tokenize(t)
+print(t)
+# => ['he', 'is', "n't", 'darwin', '.']
+```
 #### 2.2.2 単語のID化
+- 単語を Embedding Matrix の行相当の ID に変換する
+    - 但し、すべての単語に ID を付与すると膨大なデータになってしまう場合には、一定の頻度以上のものだけにIDを振る形にする
+- 実装例
+```
+import json
+from nltk.tokenize import word_tokenize
+import nltk
+nltk.download('punkt')
+
+with open("./5050_nlp_data/train.json", "r") as f:
+    train = json.load(f)
+    
+def preprocess(s):
+    s = s.lower()
+    s = word_tokenize(s)
+    return s
+
+sentences = []
+for t in train:
+    q = t['question']
+    q = preprocess(q)
+    sentences.append(q)
+    for i, a in t['answerChoices'].items():
+        a = preprocess(a)
+        sentences.append(a)
+
+# 頻度計算
+vocab = {}
+for s in sentences:
+    for w in s:
+        vocab[w] = vocab.get(w, 0) + 1
+
+# id を振る
+word2id = {}
+word2id['<unk>'] = 0
+for w, v in vocab.items():
+    if not w in word2id and v >= 2:
+         word2id[w] = len(word2id)
+
+target = preprocess(train[0]["question"])
+target = [word2id.get(w, 0) for w in target]
+print(target)
+```
 #### 2.2.3 Padding
+- keras を使った実装例
+    - maxlen: 統一する長さ
+    - dtype: データの型
+    - padding: 'pre'か'post'を指定し、前と後ろのどちらにpaddingするかを決める
+    - truncating: 'pre'か'post'を指定し、前と後ろのどちらをtruncatingするか決める
+    - value: paddingするときに用いる値
+```
+import numpy as np
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+s = [[1,2], [3,4,5], [6,7,8], [9,10,11,12,13,14]]
+s = pad_sequences(s, maxlen=5, dtype=np.int32, padding='post', truncating='post', value=0)
+print(s)
+# => array([[ 1,  2,  0,  0,  0],
+#       [ 3,  4,  5,  0,  0],
+#       [ 6,  7,  8,  0,  0],
+#       [ 9, 10, 11, 12, 13]], dtype=int32)
+```
 ### 2.3 Attention-based QA-LSTM
 #### 2.3.1 全体像
+- 学習モデルには Attention-based QA-LSTM の改良版を用いる
+    - 結合方法は、Facebook researchが発表したInferSentという有名な手法を参考にしたもの
+    1. QuestionとAnswerを別々にBiLSTMに入力
+    2. QuestionからAnswerに対してAttentionをし、Questionを考慮したAnswerの情報を得る
+    3. Questionの各時刻の隠れ状態ベクトルの平均をとって(mean pooling)ベクトルqを得る
+    4. QuestionからAttentionを施した後、Answerの各時刻の隠れ状態ベクトルの平均をとってベクトルaを得る
+    5. 最後にこの2つのベクトルを[q;a;|q-a|;q*a]のように結合して、順伝播ニューラルネット、Softmax関数を経て2つのユニットからなる出力とする
 #### 2.3.2 質問と回答のBiLSTM
+- Bidirectional LSTM(BiLSTM)では、固有表現を認識する際に、後ろから読むことで左右両方向の文脈情報を捉えることができる
 #### 2.3.3 質問から回答へのAttention
 #### 2.3.4 出力層、コンパイル
 ### 2.4 訓練
 #### 2.4.1 訓練
+- ここまでの実装例
+```
+import json
+import numpy as np
+from tensorflow.keras.layers import Input, Dense, Dropout, Reshape
+from tensorflow.keras.layers import Embedding
+from tensorflow.keras.layers import LSTM
+from tensorflow.keras.layers import Bidirectional
+from tensorflow.keras.layers import dot, concatenate
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import AveragePooling1D
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+with open("./5050_nlp_data/word2id.json", "r") as f:
+    word2id = json.load(f)
+
+batch_size = 500 # バッチサイズ
+vocab_size = len(word2id) # 扱う語彙の数
+embedding_dim = 100 # 単語ベクトルの次元
+seq_length1 = 20 # 質問の長さ
+seq_length2 = 10 # 回答の長さ
+lstm_units = 200 # LSTMの隠れ状態ベクトルの次元数
+hidden_dim = 200 # 最終出力のベクトルの次元数
+
+embedding = Embedding(input_dim=vocab_size, output_dim=embedding_dim)
+
+input1 = Input(shape=(seq_length1,))
+embed1 = embedding(input1)
+bilstm1 = Bidirectional(LSTM(lstm_units, return_sequences=True), merge_mode='concat')(embed1)
+h1 = Dropout(0.2)(bilstm1)
+
+input2 = Input(shape=(seq_length2,))
+embed2 = embedding(input2)
+bilstm2 = Bidirectional(LSTM(lstm_units, return_sequences=True), merge_mode='concat')(embed2)
+h2 = Dropout(0.2)(bilstm2)
+
+# 要素ごとの積を計算する
+product = dot([h2, h1], axes=2) # サイズ：[バッチサイズ、回答の長さ、質問の長さ]
+a = Activation('softmax')(product)
+c = dot([a, h1], axes=[2, 1])
+c_h2 = concatenate([c, h2], axis=2)
+h = Dense(hidden_dim, activation='tanh')(c_h2)
+
+mean_pooled_1 = AveragePooling1D(pool_size=seq_length1, strides=1, padding='valid')(h1)
+mean_pooled_2 = AveragePooling1D(pool_size=seq_length2, strides=1, padding='valid')(h)
+con = concatenate([mean_pooled_1, mean_pooled_2], axis=-1)
+con = Reshape((lstm_units * 2 + hidden_dim,))(con)
+output = Dense(2, activation='softmax')(con)
+
+model = Model(inputs=[input1, input2], outputs=output)
+
+model.compile(optimizer="adam", loss="categorical_crossentropy")
+
+with open("./5050_nlp_data/preprocessed_train.json", "r") as f:
+    train = json.load(f)
+
+questions = []
+answers = []
+outputs = []
+for t in train:
+    for i, ans in t["answerChoices"].items():
+        if i == t["correctAnswer"]:
+            outputs.append([1, 0])
+        else:
+            outputs.append([0, 1])
+        # 以下のコードを埋めてください
+        questions.append(t["question"])
+        answers.append(ans)
+
+questions = pad_sequences(questions, maxlen=seq_length1, dtype=np.int32, padding='post', truncating='post', value=0)
+answers = pad_sequences(answers, maxlen=seq_length2, dtype=np.int32, padding='post', truncating='post', value=0)
+outputs = np.array(outputs)
+
+# 学習させています
+model.fit([questions[:10*100], answers[:10*100]], outputs[:10*100], batch_size=batch_size)
+# ローカルで作業する場合は以下のコードを実行してください。
+
+#　model.save_weights("./5050_nlp_data/model.hdf5")
+#　model_json = model.to_json()
+
+#　with open("./5050_nlp_data/model.json", "w") as f:
+    #　json.dump(model_json, f)
+```
 ### 2.5 テスト
 #### 2.5.1 テスト
+- 実装例
+```
+import json
+import numpy as np
+from tensorflow.keras.models import model_from_json
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+
+
+with open("./5050_nlp_data/preprocessed_val.json", "r") as f:
+    val = json.load(f)
+seq_length1 = 20 # 質問の長さ
+seq_length2 = 10 # 回答の長さ
+
+questions = []
+answers = []
+outputs = []
+for t in val:
+    for i, ans in t["answerChoices"].items():
+        if i == t["correctAnswer"]:
+            outputs.append([1, 0])
+        else:
+            outputs.append([0, 1])
+        questions.append(t["question"])
+        answers.append(ans)
+
+questions = pad_sequences(questions, maxlen=seq_length1, dtype=np.int32, padding='post', truncating='post', value=0)
+answers = pad_sequences(answers, maxlen=seq_length2, dtype=np.int32, padding='post', truncating='post', value=0)
+
+with open("./5050_nlp_data/model.json", "r") as f:
+    model_json = json.load(f)
+model = model_from_json(model_json)
+model.load_weights("./5050_nlp_data/trained_model.hdf5")
+
+pred = model.predict([questions, answers])
+
+pred_idx = np.argmax(pred, axis=-1)
+true_idx = np.argmax(outputs, axis=-1)
+
+TP = 0
+FP = 0
+FN = 0
+TN = 0
+
+# 以下にコードを入力してください。
+for p, t in zip(pred_idx, true_idx):
+    if p == 0 and t == 0:
+        TP += 1
+    elif p == 0 and t == 1:
+        FP += 1
+    elif p == 1 and t == 0:
+        FN += 1
+    else:
+        TN += 1
+
+print("正解率:", (TP+TN)/(TP+FP+FN+TN))
+print("適合率:", TP/(TP+FP))
+print("再現率:", TP/(TP+FN))
+```
 ### 2.6 Attentionの可視化
 #### 2.6.1 Attentionの可視化
+- 実装例
+```
+import matplotlib.pyplot as plt
+import json
+import numpy as np
+from tensorflow.keras.layers import Input, Dense, Dropout, Reshape
+from tensorflow.keras.layers import Embedding
+from tensorflow.keras.layers import LSTM
+from tensorflow.keras.layers import Bidirectional
+from tensorflow.keras.layers import dot, concatenate
+from tensorflow.keras.layers import Activation
+from tensorflow.keras.layers import AveragePooling1D
+from tensorflow.keras.models import Model
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import model_from_json
+import mpl_toolkits.axes_grid1
+
+batch_size = 32  # バッチサイズ
+embedding_dim = 100  # 単語ベクトルの次元
+seq_length1 = 20  # 質問の長さ
+seq_length2 = 10  # 回答の長さ
+lstm_units = 200  # LSTMの隠れ状態ベクトルの次元数
+hidden_dim = 200  # 最終出力のベクトルの次元数
+
+with open("./5050_nlp_data/preprocessed_val.json", "r") as f:
+    val = json.load(f)
+
+questions = []
+answers = []
+outputs = []
+for t in val:
+    for i, ans in t["answerChoices"].items():
+        if i == t["correctAnswer"]:
+            outputs.append([1, 0])
+        else:
+            outputs.append([0, 1])
+        questions.append(t["question"])
+        answers.append(ans)
+
+questions = pad_sequences(questions, maxlen=seq_length1,
+                          dtype=np.int32, padding='post', truncating='post', value=0)
+answers = pad_sequences(answers, maxlen=seq_length2,
+                        dtype=np.int32, padding='post', truncating='post', value=0)
+
+with open("./5050_nlp_data/word2id.json", "r") as f:
+    word2id = json.load(f)
+
+vocab_size = len(word2id)  # 扱う語彙の数
+embedding = Embedding(input_dim=vocab_size, output_dim=embedding_dim)
+
+input1 = Input(shape=(seq_length1,))
+embed1 = embedding(input1)
+bilstm1 = Bidirectional(
+    LSTM(lstm_units, return_sequences=True), merge_mode='concat')(embed1)
+h1 = Dropout(0.2)(bilstm1)
+
+input2 = Input(shape=(seq_length2,))
+embed2 = embedding(input2)
+bilstm2 = Bidirectional(
+    LSTM(lstm_units, return_sequences=True), merge_mode='concat')(embed2)
+h2 = Dropout(0.2)(bilstm2)
+
+
+# 要素ごとの積を計算する
+product = dot([h2, h1], axes=2)  # サイズ：[バッチサイズ、回答の長さ、質問の長さ]
+a = Activation('softmax')(product)
+
+c = dot([a, h1], axes=[2, 1])
+c_h2 = concatenate([c, h2], axis=2)
+h = Dense(hidden_dim, activation='tanh')(c_h2)
+
+mean_pooled_1 = AveragePooling1D(
+    pool_size=seq_length1, strides=1, padding='valid')(h1)
+mean_pooled_2 = AveragePooling1D(
+    pool_size=seq_length2, strides=1, padding='valid')(h)
+con = concatenate([mean_pooled_1, mean_pooled_2], axis=-1)
+con = Reshape((lstm_units * 2 + hidden_dim,))(con)
+output = Dense(2, activation='softmax')(con)
+
+# ここを解答してください
+prob_model = Model(inputs=[input1, input2], outputs=[a, output])
+
+prob_model.load_weights("./5050_nlp_data/trained_model.hdf5")
+
+question = np.array([[2945, 1752, 2993, 1099, 122, 2717, 0,
+                      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+answer = np.array([[2841, 830, 2433, 0, 0, 0, 0, 0, 0, 0]])
+
+att, pred = prob_model.predict([question, answer])
+
+id2word = {v: k for k, v in word2id.items()}
+
+q_words = [id2word[w] for w in question[0]]
+a_words = [id2word[w] for w in answer[0]]
+
+f = plt.figure(figsize=(8, 8.5))
+ax = f.add_subplot(1, 1, 1)
+
+# add image
+i = ax.imshow(att[0], interpolation='nearest', cmap='gray')
+
+# add labels
+ax.set_yticks(range(att.shape[1]))
+ax.set_yticklabels(a_words)
+
+ax.set_xticks(range(att.shape[2]))
+ax.set_xticklabels(q_words, rotation=45)
+
+ax.set_xlabel('Question')
+ax.set_ylabel('Answer')
+
+# add colorbar
+divider = mpl_toolkits.axes_grid1.make_axes_locatable(ax)
+cax = divider.append_axes('right', '5%', pad='3%')
+plt.colorbar(i, cax=cax)
+plt.show()
+```
