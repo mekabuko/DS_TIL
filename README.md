@@ -22,6 +22,10 @@
 ### オプションコース 
 - [学習履歴](./Aidemy_Options/memo.md)
 
+## Books
+### 
+- [メモ](./機械学習・深層学習による自然言語処理入門/memo.md)
+
 # Links
 ## 公式ドキュメント等
 - Python公式リファレンス: https://docs.python.org/ja/3/reference/index.html
